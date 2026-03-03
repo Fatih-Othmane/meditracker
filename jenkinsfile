@@ -13,8 +13,8 @@ pipeline {
             steps {
                 echo '📦 Récupération du code...'
                 git branch: 'master', 
-                    url: 'https://github.com/Yahya-maani/meditracker.git',
-                    credentialsId: 'github-token'
+                    url: 'https://github.com/Yahya-maani/meditracker.git'
+                   
             }
         }
         
@@ -27,15 +27,15 @@ pipeline {
                         python --version
                         pip install --upgrade pip
                         
-                        // Utilisation du fichier minimaliste
+                        REM Utilisation du fichier minimaliste
                         pip install -r requirements-minimal.txt
                         
-                        // Installation des outils de test
+                        REM Installation des outils de test
                         pip install pytest pytest-cov flake8
                         
                         echo "=== Vérification ==="
-                        python -c "import flask; print('✅ Flask OK')"
-                        python -c "import pymongo; print('✅ PyMongo OK')"
+                        python -c "import flask; print('Flask OK')"
+                        python -c "import pymongo; print('PyMongo OK')"
                     '''
                 }
             }
@@ -50,8 +50,8 @@ pipeline {
                         if exist test_basic.py (
                             pytest test_basic.py -v
                         ) else (
-                            echo "✅ Test simple : Application chargée"
-                            python -c "from app import app; print('✅ Application OK')"
+                            echo "Test simple : Application chargée"
+                            python -c "from app import app; print('Application OK')"
                         )
                     '''
                 }
