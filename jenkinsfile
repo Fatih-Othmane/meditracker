@@ -63,20 +63,18 @@ pipeline {
         echo '🔍 Analyse SonarQube...'
         script {
             docker.image('sonarsource/sonar-scanner-cli:latest').inside(
-                "-v \"C:\\ProgramData\\Jenkins\\.jenkins\\workspace\\medtracker:C:\\workspace\""
+                "--network host -v ${WORKSPACE}:${WORKSPACE} -w ${WORKSPACE}"
             ) {
-                bat '''
-                    cd C:\\workspace
-                    dir
-                    sonar-scanner.bat ^
-                        -Dsonar.projectKey=meditracker ^
-                        -Dsonar.sources=. ^
-                        -Dsonar.host.url=http://host.docker.internal:9000 ^
-                        -Dsonar.login=%SONAR_TOKEN% ^
-                        -Dsonar.python.version=3 ^
-                        -Dsonar.sourceEncoding=UTF-8 ^
+                sh """
+                    sonar-scanner \
+                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=http://localhost:9000 \
+                        -Dsonar.login=${SONAR_TOKEN} \
+                        -Dsonar.python.version=3 \
+                        -Dsonar.sourceEncoding=UTF-8 \
                         -Dsonar.exclusions=**/venv/**
-                '''
+                """
             }
         }
     }
