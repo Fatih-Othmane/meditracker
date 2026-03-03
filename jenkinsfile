@@ -59,22 +59,24 @@ pipeline {
         }
         
         stage('SonarQube Analysis') {
-            steps {
-                echo '🔍 Analyse SonarQube...'
-                withSonarQubeEnv('SonarQube') {
-                    bat '''
-                        sonar-scanner.bat ^
-                            -Dsonar.projectKey=meditracker ^
-                            -Dsonar.sources=. ^
-                            -Dsonar.host.url=http://localhost:9000 ^
-                            -Dsonar.login=%SONAR_TOKEN% ^
-                            -Dsonar.python.version=3 ^
-                            -Dsonar.sourceEncoding=UTF-8 ^
-                            -Dsonar.exclusions=**/venv/**
-                    '''
-                }
+    steps {
+        echo '🔍 Analyse SonarQube...'
+        script {
+            docker.image('sonarsource/sonar-scanner-cli:latest').inside {
+                bat '''
+                    sonar-scanner \
+                        -Dsonar.projectKey=meditracker \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=http://localhost:9000 \
+                        -Dsonar.login=%SONAR_TOKEN% \
+                        -Dsonar.python.version=3 \
+                        -Dsonar.sourceEncoding=UTF-8 \
+                        -Dsonar.exclusions=**/venv/**
+                '''
             }
         }
+    }
+}
         
         stage('Quality Gate') {
             steps {
