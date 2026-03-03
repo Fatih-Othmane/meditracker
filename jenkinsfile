@@ -20,19 +20,21 @@ pipeline {
             }
         }
         
-        stage('Setup Python') {
-            steps {
-                echo '🐍 Configuration de Python...'
-                bat '''
-                    python --version
-                    python -m venv venv
-                    call venv\\Scripts\\activate.bat
-                    pip install --upgrade pip
-                    pip install -r requirements.txt
-                    pip install pytest pytest-cov flake8
-                '''
-            }
+       stage('Setup Python') {
+    steps {
+        echo '🐍 Configuration de Python...'
+        withPythonEnv('Python310') {  // Utilise l'outil Python configuré
+            bat '''
+                python --version
+                python -m venv venv
+                call venv\\Scripts\\activate.bat
+                pip install --upgrade pip
+                pip install -r requirements.txt
+                pip install pytest pytest-cov flake8
+            '''
         }
+    }
+}
         
         stage('Run Tests') {
             steps {
