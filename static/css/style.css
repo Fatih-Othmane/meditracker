@@ -1,0 +1,612 @@
+/* Resource: Fonts from Google Fonts https://fonts.google.com/ */
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,700;1,400&display=swap');
+
+/* ----------- Google Fonts ----------- */
+
+h1, h2, h3, h4 {
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 700;
+}
+
+body, p {
+    font-family: 'Montserrat', sans-serif;
+    color: #3B424A;
+}
+
+/* ----------- Navbar ----------- */
+
+.nav-top {
+    margin-top: 50px;
+    margin-bottom: 50px;
+}
+
+.register-button {
+    background-color: #9E0035;
+    color: white !important;
+    border-radius: 40px;
+}
+
+.register-button a {
+    color: white;
+}
+
+.login-button {
+    color: #3B424A;
+}
+
+.custom-dropdown {
+    background-color: #3B424A;
+    color: white;
+}
+
+.custom-dropdown:hover {
+    color: lightgrey;
+}
+
+.fa-user {
+    color: white;
+} 
+
+.navbar-style {
+    margin-top: 45px;
+    background-color: #9E0035;
+}
+
+.custom-toggler {
+    color: white;
+}
+
+.nav-link {
+    color: white;
+}
+
+.nav-link:hover {
+    color: rgb(204, 204, 204);
+}
+
+/* ----------- Hero ----------- */
+
+.hero-image {
+    /* Resource: Image sourced from Unsplash: https://unsplash.com/photos/KOID4ns1Ii4 */
+    background: url('../images/hero-image.jpg') ;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    height: 500px;
+}
+
+.hero-heading {
+    padding: 100px 0px 0px 0px;
+    color: white;
+}
+
+.hero-text {
+    font-size: 30px;
+    line-height: 35px;
+    position: absolute;
+    color: white;
+}
+
+/* ----------- Homepage ----------- */
+
+.box {
+    width: 300px;
+    height: 300px;
+    background-color: #9E0035;
+    /* Resource: https://www.youtube.com/watch?v=3PDQDRJq5Ls */
+    position: relative;
+    top: 280px;
+}
+
+.box p {
+    padding: 10px;
+    color: white;
+}
+
+.box1 {
+    background-color: #AE345D;
+}
+
+.box2 {
+    background-color: #9E0035;
+    /* Resource: Box-shadow https://getcssscan.com/css-box-shadow-examples */
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 15px 25px, rgba(0, 0, 0, 0.05) 0px 5px 10px;}
+
+.box3 {
+    background-color: #6B0024;
+}
+
+.box-text {
+    color: white;
+    text-align: center;
+}
+
+.box-text h4 {
+    padding-bottom: 10px;
+}
+
+.box-text .fa {
+    font-size: 40px;
+    padding: 30px 0px 20px 0px;
+}
+
+.about {
+    margin-top: 330px;
+    margin-bottom: 100px; 
+    color: #3B424A;
+}
+
+.book-appointment {
+    background-color: white;
+    font-size: 14px;
+}
+
+/* ----------- Authentication Forms (Register/ Login) ----------- */
+
+.authentication-form {
+    padding: 40px 0;
+    max-width: 60%;
+    margin: 0 auto;
+}
+
+.authentication-form .btn {
+    background-color: #9E0035;
+    border-radius: 40px;
+    padding: 10px 40px 10px 40px;
+    color: white;
+}
+
+.form-control:focus {
+    /* Resource: Change box shadow color https://www.tutorialrepublic.com/faq/how-to-change-bootstrap-default-input-focus-glow-style.php */
+    border-color: #9E0035;
+    box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.075) inset, 0px 0px 8px #9e00355d;
+}
+
+/* ----------- Form Styling ----------- */
+
+.profile-form, .log-form {
+    max-width: 50%;
+    margin-bottom: 40px;
+    color:#3B424A;
+}
+
+.profile-form h5, .log-form h5 {
+    margin-top: 30px;
+    margin-bottom: 15px;
+}
+.form-input {
+    background-color: rgba(211, 211, 211, 0.315);
+    padding: 30px 20px;
+    border-radius: 5px;
+    font-size: 14px; 
+}
+
+.cancel-button {
+    background-color: lightgray;
+    color: black !important;
+    border-radius: 40px;
+    padding: 10px 15px 10px 15px;
+    margin-top: 30px;
+}
+
+.submit-button {
+    background-color: #9E0035;
+    color: white !important;
+    border-radius: 40px;
+    padding: 10px 15px 10px 15px;
+    margin-top: 30px;
+}
+
+.submit-button:hover {
+    background-color: #9e0035e1;
+    color: white;
+    /* Resource: Box shadow form https://getcssscan.com/css-box-shadow-examples */
+    box-shadow: rgba(14, 30, 37, 0.12) 0px 2px 4px 0px, rgba(14, 30, 37, 0.32) 0px 2px 16px 0px;
+}
+
+/* ----------- Authentication ----------- */
+
+.alternate-authentication {
+    max-height: 100%;
+}
+
+.alternate-authentication h3 {
+    font-weight: 700;
+    text-align: center;
+}
+
+.alternate-authentication p {
+    text-align: center;
+}
+
+.welcome-alternate {
+    background-color: rgba(231, 231, 231, 0.637);
+    padding-top: 140px;
+    text-align: center;
+}
+
+.welcome-alternate .btn {
+    border-radius: 40px;
+    padding: 10px 40px 10px 40px;
+}
+
+.user-authentication h3 {
+    color: #9E0035;
+}
+
+.user-authentication {
+    padding-top: 50px;
+}
+
+/* ----------- Flash Messages ----------- */
+
+.flash-section {
+    background-color: #3B424A;
+    color: white;
+}
+
+.flash-message {
+    padding-top: 7px;
+    margin-left: 40px;
+}
+
+/* ----------- General Page Styling ----------- */
+
+.page-heading {
+    color: #9E0035;
+    padding: 30px 0px 10px 0px;
+}
+
+.breadcrumb a {
+    color: #9e0035;
+    padding-left: 8px;
+}
+
+.back-to-dashboard {
+    color: #3B424A;
+}
+
+.back-to-dashboard:hover {
+    color: #3B424A;
+}
+
+.btn {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+/* ----------- Dashboard Profile ----------- */
+
+.dashboard-heading {
+    background-color: #3B424A;
+    color: white;
+    padding: 10px;
+    margin-top: 60px;
+    margin-bottom: 15px;
+    font-size: 20px;
+}
+
+.dashboard-profile h5 {
+    color: #9E0035;
+    font-weight: 700;
+    padding: 15px 0px 0px 0px;
+}
+
+.dashboard-username {
+    color: #3B424A;
+}
+
+.health-profile p {
+    line-height: 15px;
+    color: black;
+}
+
+.health-profile {
+    /* Resource: Border styles. https://www.w3schools.com/css/css_border.asp */
+    border-style: solid;
+    border-width: 1px;
+    color: rgb(236, 236, 236);
+    padding: 10px;
+}
+
+.user-id {
+    font-size: 11px;
+    padding-bottom: 10px;
+}
+
+.profile-image{
+    width: 100%;
+    padding: 10px 0px;
+}
+
+.edit-profile {
+    color: #3B424A;
+}
+
+.fa-edit, .fa-trash {
+    font-size: 20px;
+}
+
+.edit-profile:hover {
+    color: #9e0035;
+}
+
+.profile-delete {
+    padding-right: 10px;
+}
+
+.profile-delete:hover {
+    color: #9E0035;
+}
+
+.appointment-button {
+    padding: 10px;
+    margin-top: 30px;
+    background-color: #9E0035;
+    color: white;
+    margin-bottom: 30px
+}
+
+.appointment-button:hover {
+    background-color: #9e0035e1;
+    color: white;
+    box-shadow: rgba(14, 30, 37, 0.12) 0px 2px 4px 0px, rgba(14, 30, 37, 0.32) 0px 2px 16px 0px;}
+
+/* ----------- Dashboard Log ----------- */
+
+.dashboard-log {
+    background-color: rgba(235, 235, 235, 0.733);
+    padding: 25px 0px 0px 25px;
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 2px 8px;
+    margin: 20px 0px 30px 0px;
+    color: #3B424A;
+}
+
+.dashboard-log p {
+    line-height: 23px;
+    margin-bottom: 10px;
+}
+
+.dashboard-log .fa-trash {
+    padding: 5px 10px 10px 0px;
+    font-size: 17px;
+    color: #3B424A;
+}
+
+.fa-pencil-alt, .fa-trash {
+    color: #3B424A;
+}
+
+.fa-trash:hover, .fa-pencil-alt:hover {
+    color: #9E0035;
+}
+
+.add-log {
+    padding-bottom: 10px;
+    color: #3B424A;
+}
+
+.add-log:hover {
+    color: #9e0035;
+    text-decoration: underline;
+}
+
+.fa-folder-plus {
+    font-size: 30px;
+}
+
+.log-date {
+    background-color: #9e0035;
+    color: white;
+    width: 30%;
+    padding: 3px 3px 3px 7px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+}
+
+/* ----------- Scroll to top button ----------- */
+
+/* Resource: Code sourced from W3Schools and styling ammended to match website branding 
+- https://www.w3schools.com/howto/howto_js_scroll_to_top.asp */
+
+#myBtn {
+    display: none; /* Hidden by default */
+    position: fixed; /* Fixed/sticky position */
+    bottom: 20px; /* Place the button at the bottom of the page */
+    right: 30px; /* Place the button 30px from the right */
+    z-index: 99; /* Make sure it does not overlap */
+    border: none;
+    background-color: #9E0035; /* Set a background color */
+    color: white; /* Text color */
+    cursor: pointer; /* Add a mouse pointer on hover */
+    padding: 15px; /* Some padding */
+    border-radius: 10px; /* Rounded corners */
+    font-size: 18px; /* Increase font size */
+  }
+  
+  #myBtn:hover {
+    background-color: #3B424A; /* Add a dark-grey background on hover */
+    border: 1px solid white;    
+}
+
+/* ----------- 404 Page ----------- */
+
+.error-page{
+    margin-bottom: 70px;
+}
+
+.error-page h3 {
+    font-size: 60px;
+    padding-top: 30px;
+    padding-bottom: 20px;
+}
+
+.error-number {
+    color: #930035;
+}
+
+.error-page h4 {
+    padding-bottom: 30px;
+}
+
+.error-button {
+    background-color: #9E0035;
+    color: white !important;
+    border-radius: 40px;
+    padding: 10px 40px 10px 40px;
+}
+
+/* ----------- Modals ----------- */
+
+.btn-modal-cancel {
+    background-color: #3B424A;
+    color: white;
+}
+
+.btn-modal-delete {
+    background-color: #930035;
+    color: white;
+}
+
+.btn-modal-delete:hover, .btn-modal-cancel:hover {
+    color: lightgray;
+}
+
+.modal-header h5 {
+    color: #3B424A;
+    font-family: 'Open Sans', sans-serif;
+}
+
+.modal-body {
+    color: #3B424A;
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* ----------- Footer ----------- */
+
+.footer {
+    background-color: #3B424A;
+    padding: 50px 0;
+}
+
+.footer-link {
+    list-style-type: none;
+    padding: 0px;
+}
+
+.footer-link a {
+    color: white;
+}
+
+.footer h5 {
+    color: white;
+}
+
+footer .fab {
+    color: white;
+    font-size: 40px;
+    padding-right: 13px;
+    padding-top: 10px;
+}
+
+.copyright {
+    background-color: #24292e;
+    font-size: 13px;
+}
+
+.copyright p {
+    margin-bottom: 0px;
+    color: white;
+}
+
+/* ----------- Media Queries ----------- */
+
+@media only screen and (max-width: 765px) {
+    .hero-text  {
+        padding: 0px 3px;
+        }
+    }
+
+@media only screen and (max-width: 765px) {
+    .custom-dropdown  {
+        margin-top: 40px;
+        }
+    }
+
+@media only screen and (max-width: 765px) {
+    .login-button, .register-button {
+        margin-top: 40px;
+        }
+    }
+
+@media only screen and (max-width: 765px) {
+    .welcome-alternate  {
+        padding: 30px 0px;
+        }
+    }
+
+@media only screen and (max-width: 1024px) {
+    .profile-form, .log-form {
+        max-width: 100%;
+        margin-bottom: 40px;
+    }
+}
+
+@media only screen and (max-width: 984px){
+    .box {
+        width: 230px;
+        height: 300px;
+    }
+}
+
+@media only screen and (max-width: 767px){
+    .box {
+        width: 100%;
+        height: 280px;
+        margin-bottom: 15px;
+    }
+}
+
+@media only screen and (max-width: 767px){
+    .about {
+        padding-top: 580px;
+        margin-bottom: 60px;
+        }
+}
+
+/* Resource: CSS flex column reverse - 
+https://stackoverflow.com/questions/51719144/css-flex-column-reverse-responsive */
+
+.alternate-authentication {
+    display: flex;
+    flex-direction: column-reverse;
+  }
+
+@media screen and (min-width: 770px) {
+    .alternate-authentication {
+        flex-direction: row;
+    }
+    .user-authentication {
+        width: 100%;
+    }
+}
+
+@media screen and (max-width: 998px) {
+    .log-date {
+        width: 40%;
+    }
+}
+
+@media screen and (max-width: 485px) {
+    .log-date {
+        width: 70%;
+    }
+}
+
+@media screen and (max-width: 736px) {
+    .flash-message {
+        padding-left: 8px;
+    }
+}

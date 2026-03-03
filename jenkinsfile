@@ -1,0 +1,117 @@
+pipeline {
+    agent any
+    
+    environment {
+        // SonarQube configuration
+        SONAR_HOST_URL = 'http://localhost:9000'
+        SONAR_PROJECT_KEY = 'meditracker'
+        SONAR_TOKEN = credentials('sonar-token')
+        
+        // Docker image name
+        DOCKER_IMAGE = "meditracker:${BUILD_NUMBER}"
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                echo '📦 Récupération du code depuis GitHub...'
+                git branch: 'master', 
+                    url: 'https://github.com/VOTRE_NOM_UTILISATEUR/meditracker.git'
+            }
+        }
+        
+        stage('Setup Python') {
+            steps {
+                echo '🐍 Configuration de Python...'
+                bat '''
+                    python --version
+                    python -m venv venv
+                    call venv\\Scripts\\activate.bat
+                    pip install --upgrade pip
+                    pip install -r requirements.txt
+                    pip install pytest pytest-cov flake8
+                '''
+            }
+        }
+        
+        stage('Run Tests') {
+            steps {
+                echo '🧪 Exécution des tests...'
+                bat '''
+                    call venv\\Scripts\\activate.bat
+                    echo "Recherche des tests..."
+                    if exist test_basic.py (
+                        pytest test_basic.py --cov=. --cov-report=xml
+                    ) else (
+                        echo "Pas de tests trouvés, vérification simple..."
+                        python -c "from app import app; print('✅ Application chargée')"
+                    )
+                '''
+            }
+        }
+        
+        stage('SonarQube Analysis') {
+            steps {
+                echo '🔍 Analyse SonarQube...'
+                withSonarQubeEnv('SonarQube') {
+                    bat '''
+                        call venv\\Scripts\\activate.bat
+                        sonar-scanner.bat ^
+                            -Dsonar.projectKey=meditracker ^
+                            -Dsonar.sources=. ^
+                            -Dsonar.host.url=http://localhost:9000 ^
+                            -Dsonar.login=%SONAR_TOKEN% ^
+                            -Dsonar.python.version=3 ^
+                            -Dsonar.sourceEncoding=UTF-8 ^
+                            -Dsonar.exclusions=**/venv/**
+                    '''
+                }
+            }
+        }
+        
+        stage('Quality Gate') {
+            steps {
+                echo '✅ Vérification du Quality Gate...'
+                timeout(time: 2, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                echo '🐳 Construction de l\'image Docker...'
+                bat '''
+                    docker build -t %DOCKER_IMAGE% .
+                    docker images
+                '''
+            }
+        }
+        
+        stage('Deploy to Local') {
+            steps {
+                echo '🚀 Déploiement local...'
+                bat '''
+                    docker stop meditracker || exit 0
+                    docker rm meditracker || exit 0
+                    docker run -d --name meditracker -p 5000:5000 %DOCKER_IMAGE%
+                    timeout /t 5
+                    curl http://localhost:5000
+                '''
+            }
+        }
+    }
+    
+    post {
+        always {
+            echo '🧹 Nettoyage...'
+            bat 'docker system prune -f'
+        }
+        success {
+            echo '✅ Pipeline terminé avec succès !'
+        }
+        failure {
+            echo '❌ Le pipeline a échoué. Vérifiez les logs.'
+        }
+    }
+}

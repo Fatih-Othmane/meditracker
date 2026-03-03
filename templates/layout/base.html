@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% include 'layout/head.html' %}
+</head>
+<body>
+    <header>
+        {% include 'components/navigation/navbar.html' %}
+    </header>
+    <div>
+        <div class="flash-section">
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages() %}
+                {% if messages%}
+                    {% for message in messages %}
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <h6 class="flash-message">{{ message }}</h6>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        {% block content %}
+        {% endblock %}
+    </div>
+    {% include 'components/footer/footer.html' %}
+    {% include 'layout/scripts.html' %}
+    {% block scripts %}
+    {% endblock %}
+</body>
+</html>

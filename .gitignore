@@ -1,0 +1,33 @@
+# Virtual Environment
+venv/
+venv/**
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+.Python
+env.py
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Node
+node_modules/
+
+# Your specific core patterns
+core.Microsoft*
+core.mongo*
+core.python*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
