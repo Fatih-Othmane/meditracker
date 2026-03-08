@@ -123,8 +123,8 @@ pipeline {
             steps {
                 echo '🐳 Construction de l\'image Docker...'
                 script {
-                    // 🔥 FIXED: Convert to integer in PowerShell
-                    DEPLOYMENT_START_TIME = powershell(script: '[int](Get-Date -UFormat %s)', returnStdout: true).trim()
+                    // 🔥 FIXED: Handle comma and spaces in timestamp
+                    DEPLOYMENT_START_TIME = powershell(script: '(Get-Date -UFormat %s).Split(",")[0].Trim()', returnStdout: true).trim()
                     
                     bat """
                         echo "=== Construction de l'image Docker ==="
@@ -195,8 +195,8 @@ pipeline {
                         echo "❌ Échec du déploiement: ${err}"
                         error "Échec du déploiement: ${err}"
                     } finally {
-                        // 🔥 FIXED: Convert to integer in PowerShell
-                        DEPLOYMENT_END_TIME = powershell(script: '[int](Get-Date -UFormat %s)', returnStdout: true).trim()
+                        // 🔥 FIXED: Handle comma and spaces in timestamp
+                        DEPLOYMENT_END_TIME = powershell(script: '(Get-Date -UFormat %s).Split(",")[0].Trim()', returnStdout: true).trim()
                     }
                 }
             }
@@ -220,7 +220,6 @@ pipeline {
             steps {
                 echo '📊 Configuration du monitoring...'
                 script {
-                    // 🔥 FIXED: Fixed the || true syntax in Windows
                     bat '''
                         echo "=== Installation de Prometheus ==="
                         kubectl apply -f kubernetes/monitoring/namespace.yaml 2>nul || echo "Namespace already exists"
@@ -239,11 +238,19 @@ pipeline {
                 echo '📈 Export des métriques...'
                 script {
                     def mttr = 0
-                    if (DEPLOYMENT_STATUS == 'failed') {
-                        // 🔥 FIXED: Safe integer parsing
-                        def start = DEPLOYMENT_START_TIME.isInteger() ? DEPLOYMENT_START_TIME.toInteger() : 0
-                        def end = DEPLOYMENT_END_TIME.isInteger() ? DEPLOYMENT_END_TIME.toInteger() : 0
-                        mttr = end - start
+                    
+                    // 🔥 FIXED: Parse timestamps safely as strings first
+                    def startTimeStr = DEPLOYMENT_START_TIME.toString().trim()
+                    def endTimeStr = DEPLOYMENT_END_TIME.toString().trim()
+                    
+                    if (DEPLOYMENT_STATUS == 'failed' && startTimeStr != '' && endTimeStr != '') {
+                        try {
+                            def start = startTimeStr.toInteger()
+                            def end = endTimeStr.toInteger()
+                            mttr = end - start
+                        } catch (Exception e) {
+                            echo "⚠️ Could not parse timestamps: ${e.message}"
+                        }
                     }
                     
                     writeFile file: 'deployment-metrics.txt', text: """
