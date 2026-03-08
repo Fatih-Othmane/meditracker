@@ -17,7 +17,7 @@ pipeline {
         DEPLOYMENT_END_TIME = ''
         INCIDENT_COUNT = '0'
         
-        // 🔥 FIX 1: Add KUBECONFIG for SYSTEM account
+        // KUBECONFIG for SYSTEM account
         KUBECONFIG = 'C:\\Windows\\System32\\config\\systemprofile\\.kube\\config'
     }
     
@@ -72,24 +72,24 @@ pipeline {
         }
         
         stage('Run Tests') {
-    steps {
-        echo '🧪 Exécution des tests...'
-        withPythonEnv('C:\\Users\\PC\\AppData\\Local\\Programs\\Python\\Python310\\python.exe') {
-            bat '''
-                echo "=== Lancement des tests ==="
-                if exist test_basic.py (
-                    pytest test_basic.py -v --junitxml=test-results.xml
-                ) else (
-                    echo "Test simple : Application chargée"
-                    python -c "from app import app; print('Application OK')"
-                    
-                    REM Create dummy test results file
-                    echo ^<?xml version='1.0' encoding='utf-8'?^>^<testsuites^>^<testsuite name='pytest' tests='1'^>^<testcase classname='test' name='test_app_loads'/^>^</testsuite^>^</testsuites^> > test-results.xml
-                )
-            '''
+            steps {
+                echo '🧪 Exécution des tests...'
+                withPythonEnv('C:\\Users\\PC\\AppData\\Local\\Programs\\Python\\Python310\\python.exe') {
+                    bat '''
+                        echo "=== Lancement des tests ==="
+                        if exist test_basic.py (
+                            pytest test_basic.py -v --junitxml=test-results.xml
+                        ) else (
+                            echo "Test simple : Application chargée"
+                            python -c "from app import app; print('Application OK')"
+                            
+                            REM Create dummy test results file
+                            echo ^<?xml version='1.0' encoding='utf-8'?^>^<testsuites^>^<testsuite name='pytest' tests='1'^>^<testcase classname='test' name='test_app_loads'/^>^</testsuite^>^</testsuites^> > test-results.xml
+                        )
+                    '''
+                }
+            }
         }
-    }
-}
         
         stage('SonarQube Analysis') {
             steps {
@@ -123,7 +123,8 @@ pipeline {
             steps {
                 echo '🐳 Construction de l\'image Docker...'
                 script {
-                    DEPLOYMENT_START_TIME = powershell(script: 'Get-Date -UFormat %s', returnStdout: true).trim()
+                    // 🔥 FIXED: Convert to integer in PowerShell
+                    DEPLOYMENT_START_TIME = powershell(script: '[int](Get-Date -UFormat %s)', returnStdout: true).trim()
                     
                     bat """
                         echo "=== Construction de l'image Docker ==="
@@ -158,7 +159,6 @@ pipeline {
                 echo '🚀 Déploiement sur Kubernetes...'
                 script {
                     try {
-                        // 🔥 FIX 2: Simplified deploy without context switching
                         bat """
                             echo "=== Création du namespace ==="
                             kubectl create namespace ${K8S_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
@@ -195,7 +195,8 @@ pipeline {
                         echo "❌ Échec du déploiement: ${err}"
                         error "Échec du déploiement: ${err}"
                     } finally {
-                        DEPLOYMENT_END_TIME = powershell(script: 'Get-Date -UFormat %s', returnStdout: true).trim()
+                        // 🔥 FIXED: Convert to integer in PowerShell
+                        DEPLOYMENT_END_TIME = powershell(script: '[int](Get-Date -UFormat %s)', returnStdout: true).trim()
                     }
                 }
             }
@@ -219,15 +220,16 @@ pipeline {
             steps {
                 echo '📊 Configuration du monitoring...'
                 script {
-                    bat """
+                    // 🔥 FIXED: Fixed the || true syntax in Windows
+                    bat '''
                         echo "=== Installation de Prometheus ==="
-                        kubectl apply -f kubernetes/monitoring/namespace.yaml || true
-                        kubectl apply -f kubernetes/monitoring/prometheus-config.yaml || true
-                        kubectl apply -f kubernetes/monitoring/prometheus-deployment.yaml || true
+                        kubectl apply -f kubernetes/monitoring/namespace.yaml 2>nul || echo "Namespace already exists"
+                        kubectl apply -f kubernetes/monitoring/prometheus-config.yaml 2>nul || echo "Prometheus config exists"
+                        kubectl apply -f kubernetes/monitoring/prometheus-deployment.yaml 2>nul || echo "Prometheus deployment exists"
                         
                         echo "=== Installation de Grafana ==="
-                        kubectl apply -f kubernetes/monitoring/grafana-deployment.yaml || true
-                    """
+                        kubectl apply -f kubernetes/monitoring/grafana-deployment.yaml 2>nul || echo "Grafana exists"
+                    '''
                 }
             }
         }
@@ -238,8 +240,9 @@ pipeline {
                 script {
                     def mttr = 0
                     if (DEPLOYMENT_STATUS == 'failed') {
-                        def start = DEPLOYMENT_START_TIME.toInteger()
-                        def end = DEPLOYMENT_END_TIME.toInteger()
+                        // 🔥 FIXED: Safe integer parsing
+                        def start = DEPLOYMENT_START_TIME.isInteger() ? DEPLOYMENT_START_TIME.toInteger() : 0
+                        def end = DEPLOYMENT_END_TIME.isInteger() ? DEPLOYMENT_END_TIME.toInteger() : 0
                         mttr = end - start
                     }
                     
@@ -250,7 +253,6 @@ DEPLOYMENT_TIMESTAMP=${new Date().format('yyyy-MM-dd HH:mm:ss')}
 BUILD_NUMBER=${BUILD_NUMBER}
 MTTR_SECONDS=${mttr}
 INCIDENT_COUNT=${INCIDENT_COUNT}
-DEPLOYMENT_DURATION=${DEPLOYMENT_END_TIME.toInteger() - DEPLOYMENT_START_TIME.toInteger()}
 """
                     
                     archiveArtifacts artifacts: 'deployment-metrics.txt', fingerprint: true, allowEmptyArchive: true
@@ -263,14 +265,12 @@ DEPLOYMENT_DURATION=${DEPLOYMENT_END_TIME.toInteger() - DEPLOYMENT_START_TIME.to
         always {
             echo '🧹 Nettoyage terminé'
             script {
-                // 🔥 FIX 3: Safe cleanup without complex for loop
                 bat '''
                     echo "=== Nettoyage des images Docker ==="
                     docker image prune -f --filter "until=24h"
                 '''
             }
             
-            // 🔥 FIX 4: Safe junit handling
             script {
                 if (fileExists('test-results.xml')) {
                     junit 'test-results.xml'
