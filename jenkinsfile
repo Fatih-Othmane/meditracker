@@ -72,24 +72,24 @@ pipeline {
         }
         
         stage('Run Tests') {
-            steps {
-                echo '🧪 Exécution des tests...'
-                withPythonEnv('C:\\Users\\PC\\AppData\\Local\\Programs\\Python\\Python310\\python.exe') {
-                    bat '''
-                        echo "=== Lancement des tests ==="
-                        if exist test_basic.py (
-                            pytest test_basic.py -v --junitxml=test-results.xml
-                        ) else (
-                            echo "Test simple : Application chargée"
-                            python -c "from app import app; print('Application OK')"
-                            
-                            // Create dummy test results file
-                            echo "<?xml version='1.0' encoding='utf-8'?><testsuites><testsuite name='pytest' tests='1'><testcase classname='test' name='test_app_loads'/></testsuite></testsuites>" > test-results.xml
-                        )
-                    '''
-                }
-            }
+    steps {
+        echo '🧪 Exécution des tests...'
+        withPythonEnv('C:\\Users\\PC\\AppData\\Local\\Programs\\Python\\Python310\\python.exe') {
+            bat '''
+                echo "=== Lancement des tests ==="
+                if exist test_basic.py (
+                    pytest test_basic.py -v --junitxml=test-results.xml
+                ) else (
+                    echo "Test simple : Application chargée"
+                    python -c "from app import app; print('Application OK')"
+                    
+                    REM Create dummy test results file
+                    echo ^<?xml version='1.0' encoding='utf-8'?^>^<testsuites^>^<testsuite name='pytest' tests='1'^>^<testcase classname='test' name='test_app_loads'/^>^</testsuite^>^</testsuites^> > test-results.xml
+                )
+            '''
         }
+    }
+}
         
         stage('SonarQube Analysis') {
             steps {
