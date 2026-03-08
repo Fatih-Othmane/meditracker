@@ -239,8 +239,7 @@ pipeline {
                 }
             }
         }
-    }
-    stage('Create Grafana Dashboard') {
+         stage('Create Grafana Dashboard') {
     steps {
         script {
             // Import dashboard via API
@@ -255,6 +254,8 @@ pipeline {
         }
     }
 }
+    }
+    
     post {
         always {
             echo '🧹 Nettoyage terminé'
