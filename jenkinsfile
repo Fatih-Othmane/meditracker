@@ -28,7 +28,7 @@ pipeline {
                         pip install --upgrade pip
                         
                         REM Utilisation du fichier minimaliste
-                        pip install -r requirements-minimal.txt
+                        pip install -r requirements.txt
                         
                         REM Installation des outils de test
                         pip install pytest pytest-cov flake8
@@ -62,7 +62,7 @@ pipeline {
         bat 'echo %PATH%'
     }
 }
-       stage('SonarQube Analysis') {
+      stage('SonarQube Analysis') {
     steps {
         echo '🔍 Analyse SonarQube...'
         withSonarQubeEnv('sonar_integration') {
@@ -72,8 +72,8 @@ pipeline {
                     -Dsonar.sources=. ^
                     -Dsonar.python.version=3 ^
                     -Dsonar.sourceEncoding=UTF-8 ^
-                    -Dsonar.exclusions=**/venv/**,**/__pycache__/**,**/.git/**,**/tests/**,**/migrations/** ^
-                    -Dsonar.cpd.exclusions=**/tests/** ^
+                    -Dsonar.exclusions=**/venv/**,**/__pycache__/**,**/.git/**,**/tests/**,**/migrations/**,**/site-packages/**,**/.pyenv*/**,**/Lib/**,**/Python310/**,**/.pytest_cache/**,**/*.pyc ^
+                    -Dsonar.cpd.exclusions=**/tests/**,**/site-packages/**,**/.pyenv*/**,**/Lib/** ^
                     -Dsonar.python.coverage.reportPaths= ^
                     -Dsonar.python.xunit.reportPath=
             """
