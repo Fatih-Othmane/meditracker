@@ -86,7 +86,7 @@ pipeline {
         stage('Quality Gate') {
             steps {
                 echo '✅ Vérification Quality Gate...'
-                timeout(time: 2, unit: 'MINUTES') {
+                timeout(time: 4, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
             }
@@ -129,40 +129,46 @@ pipeline {
                 }
             }
         }
-        
         stage('Deploy to Kubernetes') {
-            steps {
-                echo '🚀 Déploiement sur Kubernetes...'
-                script {
-                    try {
-                        // Create namespace if not exists
-                        bat "kubectl create namespace ${K8S_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -"
-                        
-                        // Update deployment image
-                        bat """
-                            echo "=== Mise à jour du déploiement ==="
-                            kubectl set image deployment/${DEPLOYMENT_NAME} \
-                                ${DEPLOYMENT_NAME}=${DOCKER_REGISTRY}/${DOCKER_IMAGE} \
-                                -n ${K8S_NAMESPACE} --record
-                            
-                            echo "=== Vérification du déploiement ==="
-                            kubectl rollout status deployment/${DEPLOYMENT_NAME} -n ${K8S_NAMESPACE} --timeout=300s
-                            
-                            echo "=== Déploiement réussi ==="
-                            kubectl get pods -n ${K8S_NAMESPACE}
-                        """
-                        
-                        DEPLOYMENT_STATUS = 'success'
-                    } catch (err) {
-                        DEPLOYMENT_STATUS = 'failed'
-                        INCIDENT_COUNT = '1'
-                        error "Échec du déploiement: ${err}"
-                    } finally {
-                        DEPLOYMENT_END_TIME = sh(script: 'date +%s', returnStdout: true).trim()
-                    }
-                }
+    steps {
+        echo '🚀 Déploiement sur Kubernetes...'
+        script {
+            try {
+                // Create namespace if not exists
+                bat "kubectl create namespace ${K8S_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -"
+                
+                // Apply the service first (if not exists)
+                bat "kubectl apply -f kubernetes/service.yaml -n ${K8S_NAMESPACE} || true"
+                
+                // Process the deployment.yaml with environment variables
+                bat """
+                    echo "=== Traitement du fichier de déploiement ==="
+                    // Replace variables in deployment file
+                    powershell -Command "\$content = Get-Content kubernetes/deployment.yaml -Raw; \$content = \$content -replace '\\$\\{DOCKER_REGISTRY\\}', '${DOCKER_REGISTRY}' -replace '\\$\\{BUILD_NUMBER\\}', '${BUILD_NUMBER}'; Set-Content -Path kubernetes/deployment-processed.yaml -Value \$content"
+                    
+                    echo "=== Application du déploiement ==="
+                    kubectl apply -f kubernetes/deployment-processed.yaml -n ${K8S_NAMESPACE}
+                    
+                    echo "=== Vérification du déploiement ==="
+                    kubectl rollout status deployment/${DEPLOYMENT_NAME} -n ${K8S_NAMESPACE} --timeout=300s
+                    
+                    echo "=== Déploiement réussi avec image: ${DOCKER_REGISTRY}/meditracker:${BUILD_NUMBER} ==="
+                    kubectl get pods -n ${K8S_NAMESPACE} -o wide
+                """
+                
+                DEPLOYMENT_STATUS = 'success'
+            } catch (err) {
+                DEPLOYMENT_STATUS = 'failed'
+                INCIDENT_COUNT = '1'
+                error "Échec du déploiement: ${err}"
+            } finally {
+                DEPLOYMENT_END_TIME = sh(script: 'date +%s', returnStdout: true).trim()
             }
         }
+    }
+}
+        
+       
         
         stage('Health Check') {
             steps {
