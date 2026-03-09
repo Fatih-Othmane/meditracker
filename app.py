@@ -5,7 +5,7 @@ from flask import (
 from flask_pymongo import PyMongo
 from bson.objectid import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
-from prometheus_client import Counter, Histogram, Gauge, generate_latest, REGISTRY
+from prometheus_client import Counter, Histogram, Gauge, generate_latest, REGISTRY, CONTENT_TYPE_LATEST
 import time
 
 if os.path.exists("env.py"):
@@ -49,10 +49,9 @@ def after_request(response):
     ).observe(request_duration)
     return response
 
-# Add metrics endpoint
 @app.route('/metrics')
 def metrics():
-    """Expose Prometheus metrics"""
+    """Expose Prometheus metrics with correct content type"""
     # Update active users if session exists
     if 'user' in session:
         ACTIVE_USERS.set(1)
@@ -65,7 +64,8 @@ def metrics():
         status='running'
     ).set(1)
     
-    return generate_latest(REGISTRY)
+    # Return metrics with correct content type
+    return generate_latest(REGISTRY), 200, {'Content-Type': CONTENT_TYPE_LATEST}
 
 @app.route('/')
 def home():

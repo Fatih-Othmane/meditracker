@@ -27,6 +27,6 @@ data:
         replacement: $1:$2
         target_label: __address__
     
-    - job_name: 'deployment-metrics'
-      static_configs:
-      - targets: ['pushgateway.monitoring:9091']
+   # - job_name: 'deployment-metrics'
+     # static_configs:
+      #- targets: ['pushgateway.monitoring:9091']
