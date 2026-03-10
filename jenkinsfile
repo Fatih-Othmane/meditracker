@@ -10,6 +10,7 @@ pipeline {
         K8S_NAMESPACE = 'meditracker'
         DEPLOYMENT_NAME = 'meditracker-app'
         CONTAINER_PORT = '5000'
+        APP_SERVICE = 'meditracker-app' 
         
         // Monitoring metrics
         DEPLOYMENT_STATUS = 'success'
@@ -123,7 +124,6 @@ pipeline {
             steps {
                 echo '🐳 Construction de l\'image Docker...'
                 script {
-                    // 🔥 FIXED: Handle comma and spaces in timestamp
                     DEPLOYMENT_START_TIME = powershell(script: '(Get-Date -UFormat %s).Split(",")[0].Trim()', returnStdout: true).trim()
                     
                     bat """
@@ -188,15 +188,41 @@ pipeline {
                             kubectl get pods -n ${K8S_NAMESPACE} -o wide
                         """
                         
+                        // ✅ Si succès : incrémente DEPLOYMENT_TOTAL
+                        bat """
+                            echo "=== Enregistrement du succès ==="
+                            kubectl exec -n ${K8S_NAMESPACE} deployment/${DEPLOYMENT_NAME} -- curl -X POST http://localhost:5000/metrics/deployment-success || echo "Métrique déjà enregistrée"
+                        """
+                        
                         DEPLOYMENT_STATUS = 'success'
                     } catch (err) {
+                        // ❌ Si échec : incrémente DEPLOYMENT_FAILURES
+                        bat """
+                            echo "=== Enregistrement de l'échec ==="
+                            kubectl exec -n ${K8S_NAMESPACE} deployment/${DEPLOYMENT_NAME} -- curl -X POST http://localhost:5000/metrics/deployment-failure || echo "Métrique déjà enregistrée"
+                        """
+                        
                         DEPLOYMENT_STATUS = 'failed'
                         INCIDENT_COUNT = '1'
                         echo "❌ Échec du déploiement: ${err}"
                         error "Échec du déploiement: ${err}"
                     } finally {
-                        // 🔥 FIXED: Handle comma and spaces in timestamp
                         DEPLOYMENT_END_TIME = powershell(script: '(Get-Date -UFormat %s).Split(",")[0].Trim()', returnStdout: true).trim()
+                        
+                        // Envoyer le MTTR à l'application
+                        def mttr = 0
+                        def start = DEPLOYMENT_START_TIME.toString().trim()
+                        def end = DEPLOYMENT_END_TIME.toString().trim()
+                        if (start != '' && end != '') {
+                            try {
+                                mttr = end.toInteger() - start.toInteger()
+                                bat """
+                                    kubectl exec -n ${K8S_NAMESPACE} deployment/${DEPLOYMENT_NAME} -- curl -X POST "http://localhost:5000/metrics/mttr?value=${mttr}" || echo "MTTR enregistré"
+                                """
+                            } catch (Exception e) {
+                                echo "⚠️ Impossible de calculer le MTTR: ${e.message}"
+                            }
+                        }
                     }
                 }
             }
@@ -228,6 +254,9 @@ pipeline {
                         
                         echo "=== Installation de Grafana ==="
                         kubectl apply -f kubernetes/monitoring/grafana-deployment.yaml 2>nul || echo "Grafana exists"
+                        
+                        echo "=== Installation du dashboard Grafana ==="
+                        kubectl apply -f kubernetes/monitoring/grafana-dashboard.yaml 2>nul || echo "Dashboard exists"
                     '''
                 }
             }
@@ -239,7 +268,6 @@ pipeline {
                 script {
                     def mttr = 0
                     
-                    // 🔥 FIXED: Parse timestamps safely as strings first
                     def startTimeStr = DEPLOYMENT_START_TIME.toString().trim()
                     def endTimeStr = DEPLOYMENT_END_TIME.toString().trim()
                     
