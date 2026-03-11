@@ -29,8 +29,7 @@ REQUEST_DURATION = Histogram('http_request_duration_seconds', 'HTTP request dura
 DEPLOYMENT_INFO = Gauge('deployment_info', 'Deployment information', ['version', 'status'])
 ACTIVE_USERS = Gauge('active_users', 'Number of active users')
 INCIDENT_COUNTER = Counter('incidents_total', 'Total number of incidents')
-DEPLOYMENT_FAILURES = Counter('deployment_failures_total', 'Total failed deployments')
-DEPLOYMENT_TOTAL = Counter('deployment_total', 'Total deployments')
+
 
 @app.before_request
 def before_request():
@@ -359,19 +358,7 @@ def linkedin():
     """
     return redirect("https://www.linkedin.com")
 
-@app.route('/metrics/deployment-success')
-def deployment_success():
-    """Incrémente le compteur de déploiements réussis"""
-    DEPLOYMENT_TOTAL.inc()
-    return "OK", 200
 
-@app.route('/metrics/deployment-failure')
-def deployment_failure():
-    """Incrémente les compteurs d'échec et d'incidents"""
-    DEPLOYMENT_FAILURES.inc()
-    DEPLOYMENT_TOTAL.inc()  # On compte aussi le total des déploiements
-    INCIDENT_COUNTER.inc()   # On compte l'incident
-    return "OK", 200
 if __name__ == "__main__":
     app.run(host="0.0.0.0",  # ou "localhost"
             port=5000,        # port fixe
