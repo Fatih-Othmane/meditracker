@@ -155,78 +155,83 @@ pipeline {
         }
         
         stage('Deploy to Kubernetes') {
-            steps {
-                echo '🚀 Déploiement sur Kubernetes...'
-                script {
+    steps {
+        echo '🚀 Déploiement sur Kubernetes...'
+        script {
+            try {
+                // FORCER l'utilisation de l'image 65 (avec curl)
+                bat """
+                    echo "=== FORCAGE de l'image 65 ==="
+                    kubectl set image deployment/${DEPLOYMENT_NAME} -n ${K8S_NAMESPACE} meditracker=docker.io/yahyamaani/meditracker:65
+                """
+                
+                bat """
+                    echo "=== Création du namespace ==="
+                    kubectl create namespace ${K8S_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+                """
+                
+                bat """
+                    echo "=== Application du service ==="
+                    kubectl apply -f kubernetes/service.yaml -n ${K8S_NAMESPACE}
+                """
+                
+                bat """
+                    echo "=== Traitement du fichier de déploiement ==="
+                    powershell -Command "& {
+                        \$content = Get-Content kubernetes/deployment.yaml -Raw
+                        \$content = \$content -replace '\\\$\\{DOCKER_REGISTRY\\}', '${DOCKER_REGISTRY}'
+                        \$content = \$content -replace '\\\$\\{BUILD_NUMBER\\}', '${BUILD_NUMBER}'
+                        Set-Content -Path kubernetes/deployment-processed.yaml -Value \$content
+                    }"
+                    
+                    echo "=== Application du déploiement ==="
+                    kubectl apply -f kubernetes/deployment-processed.yaml -n ${K8S_NAMESPACE}
+                    
+                    echo "=== Vérification du déploiement ==="
+                    kubectl rollout status deployment/${DEPLOYMENT_NAME} -n ${K8S_NAMESPACE} --timeout=300s
+                    
+                    echo "=== Pods déployés ==="
+                    kubectl get pods -n ${K8S_NAMESPACE} -o wide
+                """
+                
+                // ✅ Si succès : utilise wget au lieu de curl
+                bat """
+                    echo "=== Enregistrement du succès avec wget ==="
+                    kubectl exec -n ${K8S_NAMESPACE} deployment/${DEPLOYMENT_NAME} -- wget -q --post-data="" -O- http://localhost:5000/metrics/deployment-success || echo "Métrique déjà enregistrée"
+                """
+                
+                DEPLOYMENT_STATUS = 'success'
+            } catch (err) {
+                // ❌ Si échec : utilise wget
+                bat """
+                    echo "=== Enregistrement de l'échec avec wget ==="
+                    kubectl exec -n ${K8S_NAMESPACE} deployment/${DEPLOYMENT_NAME} -- wget -q --post-data="" -O- http://localhost:5000/metrics/deployment-failure || echo "Métrique déjà enregistrée"
+                """
+                
+                DEPLOYMENT_STATUS = 'failed'
+                INCIDENT_COUNT = '1'
+                echo "❌ Échec du déploiement: ${err}"
+                error "Échec du déploiement: ${err}"
+            } finally {
+                DEPLOYMENT_END_TIME = powershell(script: '(Get-Date -UFormat %s).Split(",")[0].Trim()', returnStdout: true).trim()
+                
+                def mttr = 0
+                def start = DEPLOYMENT_START_TIME.toString().trim()
+                def end = DEPLOYMENT_END_TIME.toString().trim()
+                if (start != '' && end != '') {
                     try {
+                        mttr = end.toInteger() - start.toInteger()
                         bat """
-                            echo "=== Création du namespace ==="
-                            kubectl create namespace ${K8S_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+                            kubectl exec -n ${K8S_NAMESPACE} deployment/${DEPLOYMENT_NAME} -- wget -q --post-data="" -O- "http://localhost:5000/metrics/mttr?value=${mttr}" || echo "MTTR enregistré"
                         """
-                        
-                        bat """
-                            echo "=== Application du service ==="
-                            kubectl apply -f kubernetes/service.yaml -n ${K8S_NAMESPACE}
-                        """
-                        
-                        bat """
-                            echo "=== Traitement du fichier de déploiement ==="
-                            powershell -Command "& {
-                                \$content = Get-Content kubernetes/deployment.yaml -Raw
-                                \$content = \$content -replace '\\\$\\{DOCKER_REGISTRY\\}', '${DOCKER_REGISTRY}'
-                                \$content = \$content -replace '\\\$\\{BUILD_NUMBER\\}', '${BUILD_NUMBER}'
-                                Set-Content -Path kubernetes/deployment-processed.yaml -Value \$content
-                            }"
-                            
-                            echo "=== Application du déploiement ==="
-                            kubectl apply -f kubernetes/deployment-processed.yaml -n ${K8S_NAMESPACE}
-                            
-                            echo "=== Vérification du déploiement ==="
-                            kubectl rollout status deployment/${DEPLOYMENT_NAME} -n ${K8S_NAMESPACE} --timeout=300s
-                            
-                            echo "=== Pods déployés ==="
-                            kubectl get pods -n ${K8S_NAMESPACE} -o wide
-                        """
-                        
-                        // ✅ Si succès : incrémente DEPLOYMENT_TOTAL
-                        bat """
-                            echo "=== Enregistrement du succès ==="
-                            kubectl exec -n ${K8S_NAMESPACE} deployment/${DEPLOYMENT_NAME} -- curl -X POST http://localhost:5000/metrics/deployment-success || echo "Métrique déjà enregistrée"
-                        """
-                        
-                        DEPLOYMENT_STATUS = 'success'
-                    } catch (err) {
-                        // ❌ Si échec : incrémente DEPLOYMENT_FAILURES
-                        bat """
-                            echo "=== Enregistrement de l'échec ==="
-                            kubectl exec -n ${K8S_NAMESPACE} deployment/${DEPLOYMENT_NAME} -- curl -X POST http://localhost:5000/metrics/deployment-failure || echo "Métrique déjà enregistrée"
-                        """
-                        
-                        DEPLOYMENT_STATUS = 'failed'
-                        INCIDENT_COUNT = '1'
-                        echo "❌ Échec du déploiement: ${err}"
-                        error "Échec du déploiement: ${err}"
-                    } finally {
-                        DEPLOYMENT_END_TIME = powershell(script: '(Get-Date -UFormat %s).Split(",")[0].Trim()', returnStdout: true).trim()
-                        
-                        // Envoyer le MTTR à l'application
-                        def mttr = 0
-                        def start = DEPLOYMENT_START_TIME.toString().trim()
-                        def end = DEPLOYMENT_END_TIME.toString().trim()
-                        if (start != '' && end != '') {
-                            try {
-                                mttr = end.toInteger() - start.toInteger()
-                                bat """
-                                    kubectl exec -n ${K8S_NAMESPACE} deployment/${DEPLOYMENT_NAME} -- curl -X POST "http://localhost:5000/metrics/mttr?value=${mttr}" || echo "MTTR enregistré"
-                                """
-                            } catch (Exception e) {
-                                echo "⚠️ Impossible de calculer le MTTR: ${e.message}"
-                            }
-                        }
+                    } catch (Exception e) {
+                        echo "⚠️ Impossible de calculer le MTTR: ${e.message}"
                     }
                 }
             }
         }
+    }
+}
         
         stage('Health Check') {
             steps {
