@@ -6,7 +6,7 @@ pipeline {
         SONAR_PROJECT_KEY = 'meditracker'
         SONAR_TOKEN = credentials('sonar-token')
         DOCKER_IMAGE = "meditracker:${BUILD_NUMBER}"
-        DOCKER_REGISTRY = 'docker.io/yahyamaani' 
+        DOCKER_REGISTRY = 'docker.io/othmanefatih' 
         K8S_NAMESPACE = 'meditracker'
         DEPLOYMENT_NAME = 'meditracker-app'
         CONTAINER_PORT = '5000'
